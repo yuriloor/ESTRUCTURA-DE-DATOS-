@@ -1,0 +1,106 @@
+import java.util.*;
+
+public class Main {
+
+    // Clase interna para evitar tener múltiples archivos
+    static class Ciudadano {
+        String id;
+        String nombre;
+
+        public Ciudadano(String id, String nombre) {
+            this.id = id;
+            this.nombre = nombre;
+        }
+
+        @Override
+        public String toString() {
+            return id + " - " + nombre;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Ciudadano)) return false;
+            Ciudadano that = (Ciudadano) o;
+            return Objects.equals(id, that.id);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
+    }
+
+    public static void main(String[] args) {
+        // Para resultados reproducibles
+        Random rnd = new Random(42);
+
+        // 1) Conjunto universal: 500 ciudadanos ficticios
+        Set<Ciudadano> todos = new HashSet<>();
+        for (int i = 1; i <= 500; i++) {
+            String id = String.format("%04d", i);
+            todos.add(new Ciudadano(id, "Ciudadano_" + i));
+        }
+
+        // Lista auxiliar para muestrear
+        List<Ciudadano> listaTodos = new ArrayList<>(todos);
+
+        // 2) Subconjunto Pfizer: 75 ciudadanos (posible cruce con AstraZeneca)
+        Collections.shuffle(listaTodos, rnd);
+        Set<Ciudadano> pfizer = new HashSet<>(listaTodos.subList(0, 75));
+
+        // 3) Subconjunto AstraZeneca: 75 ciudadanos (posible cruce con Pfizer)
+        Collections.shuffle(listaTodos, rnd);
+        Set<Ciudadano> astrazeneca = new HashSet<>(listaTodos.subList(0, 75));
+
+        // --- Operaciones de teoría de conjuntos ---
+
+        // Unión: vacunados con al menos una de las dos
+        Set<Ciudadano> vacunados = new HashSet<>(pfizer);
+        vacunados.addAll(astrazeneca);
+
+        // Diferencia: NO vacunados = todos - (Pfizer ∪ AstraZeneca)
+        Set<Ciudadano> noVacunados = new HashSet<>(todos);
+        noVacunados.removeAll(vacunados);
+
+        // Intersección: AMBAS dosis (ambas vacunas) = Pfizer ∩ AstraZeneca
+        Set<Ciudadano> ambasDosis = new HashSet<>(pfizer);
+        ambasDosis.retainAll(astrazeneca);
+
+        // Diferencia: SOLO Pfizer = Pfizer - AstraZeneca
+        Set<Ciudadano> soloPfizer = new HashSet<>(pfizer);
+        soloPfizer.removeAll(astrazeneca);
+
+        // Diferencia: SOLO AstraZeneca = AstraZeneca - Pfizer
+        Set<Ciudadano> soloAstra = new HashSet<>(astrazeneca);
+        soloAstra.removeAll(pfizer);
+
+        // --- Salida ---
+        System.out.println("TOTAL ciudadanos: " + todos.size());
+        System.out.println("Pfizer (tamaño del conjunto): " + pfizer.size());
+        System.out.println("AstraZeneca (tamaño del conjunto): " + astrazeneca.size());
+        System.out.println("No vacunados (todos - unión): " + noVacunados.size());
+        System.out.println("Ambas dosis (intersección): " + ambasDosis.size());
+        System.out.println("Solo Pfizer (diferencia): " + soloPfizer.size());
+        System.out.println("Solo AstraZeneca (diferencia): " + soloAstra.size());
+
+        // Muestras (primeros 10 de cada conjunto)
+        imprimirMuestra("NO vacunados", noVacunados, 10);
+        imprimirMuestra("AMBAS dosis", ambasDosis, 10);
+        imprimirMuestra("SOLO Pfizer", soloPfizer, 10);
+        imprimirMuestra("SOLO AstraZeneca", soloAstra, 10);
+    }
+
+    private static void imprimirMuestra(String titulo, Set<Ciudadano> conjunto, int limite) {
+        System.out.println("\n" + titulo + " (muestra):");
+        int c = 0;
+        for (Ciudadano ciu : conjunto) {
+            System.out.println(" - " + ciu);
+            if (++c >= limite) break;
+        }
+        if (conjunto.isEmpty()) {
+            System.out.println(" (sin registros)");
+        }
+    }
+}
+
